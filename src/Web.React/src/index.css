@@ -6,6 +6,13 @@ body,
   background-color: #f8fafc;
 }
 
+:root {
+  --app-primary: #1d39c4;
+  --app-primary-gradient-end: #597ef7;
+  --app-primary-shadow: rgba(29, 57, 196, 0.24);
+  --app-primary-shadow-strong: rgba(29, 57, 196, 0.34);
+}
+
 body {
   margin: 0;
   font-family: Inter, Outfit, "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
@@ -83,15 +90,15 @@ body {
 
 /* Glow styling for primary active components */
 .gradient-btn-active {
-  background: linear-gradient(135deg, #0052cc, #2684ff) !important;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-primary-gradient-end)) !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 4px 14px rgba(0, 82, 204, 0.3) !important;
+  box-shadow: 0 4px 14px var(--app-primary-shadow) !important;
 }
 
 .gradient-btn-active:hover {
   opacity: 0.9;
-  box-shadow: 0 6px 20px rgba(0, 82, 204, 0.4) !important;
+  box-shadow: 0 6px 20px var(--app-primary-shadow-strong) !important;
 }
 
 /* Spin wrapper in flex containers */

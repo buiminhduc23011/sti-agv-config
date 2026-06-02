@@ -12,10 +12,12 @@ import {
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getConfig } from "../config/api";
 import { useAuth } from "../contexts/AuthContext";
+import { appColors } from "../theme/colors";
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Text, Title } = Typography;
 const { useBreakpoint } = Grid;
+const APP_VERSION = "v1.0.0";
 
 function MainLayout() {
   const screens = useBreakpoint();
@@ -102,6 +104,19 @@ function MainLayout() {
           style={{ borderInlineEnd: 0 }}
         />
       </div>
+
+      <div
+        style={{
+          padding: collapsed && !isMobile ? "12px 8px 18px" : "12px 24px 18px",
+          borderTop: "1px solid #f1f5f9",
+          textAlign: "center",
+          flexShrink: 0
+        }}
+      >
+        <Text style={{ color: "#94a3b8", fontSize: 12, fontWeight: 400 }}>
+          {APP_VERSION}
+        </Text>
+      </div>
     </div>
   );
 
@@ -119,7 +134,7 @@ function MainLayout() {
           {currentUser.fullName}
         </Text>
         <Tag
-          color="blue"
+          color="geekblue"
           bordered={false}
           style={{
             fontSize: 10,
@@ -137,9 +152,9 @@ function MainLayout() {
         size={36}
         icon={<UserOutlined />}
         style={{
-          background: "#eaf2ff",
-          color: "#0052cc",
-          border: "1px solid #d0e2ff"
+          background: appColors.primarySoft,
+          color: appColors.primary,
+          border: `1px solid ${appColors.primaryBorder}`
         }}
       />
 
@@ -167,7 +182,7 @@ function MainLayout() {
       onClick={() => navigate("/login")}
       style={{
         borderRadius: 10,
-        background: "linear-gradient(135deg, #0052cc, #2684ff)",
+        background: `linear-gradient(135deg, ${appColors.primary}, ${appColors.primaryGradientEnd})`,
         border: "none"
       }}
     >

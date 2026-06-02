@@ -14,11 +14,11 @@ import {
   Statistic,
   Tag,
   Grid,
-  Pagination
+  Pagination,
+  theme
 } from "antd";
 import {
   SaveOutlined,
-  ReloadOutlined,
   DeploymentUnitOutlined,
   SearchOutlined,
   BlockOutlined,
@@ -69,6 +69,8 @@ function priorityTag(val) {
 function ProcessPriorityPage() {
   const screens = useBreakpoint();
   const isMobile = !screens.lg;
+  const { token } = theme.useToken();
+  const primaryColor = token.colorPrimary;
 
   const [lines, setLines] = useState([]);
   const [allProcesses, setAllProcesses] = useState([]); // enriched with lineId, lineName
@@ -135,13 +137,6 @@ function ProcessPriorityPage() {
     }
   }, [lines, fetchAllProcesses]);
 
-  const handleReload = async () => {
-    const freshLines = await fetchLines();
-    if (freshLines.length > 0) {
-      await fetchAllProcesses(freshLines);
-    }
-  };
-
   // ── Priority change ───────────────────────────────────────────────────────
   const handlePriorityChange = (processId, value) => {
     setDirtyPriorities((prev) => ({ ...prev, [processId]: value }));
@@ -173,16 +168,18 @@ function ProcessPriorityPage() {
 
   // ── Derived data ──────────────────────────────────────────────────────────
   const isDirty = Object.keys(dirtyPriorities).length > 0;
+  const selectedLineId = filterLineId ?? null;
+  const selectedPriority = filterPriority ?? null;
 
   const filteredProcesses = allProcesses.filter((p) => {
-    if (filterLineId !== null && p.lineId !== filterLineId) return false;
+    if (selectedLineId !== null && p.lineId !== selectedLineId) return false;
     if (filterName.trim()) {
       const q = filterName.toLowerCase();
       if (!p.name.toLowerCase().includes(q) && !p.id.toString().includes(q)) return false;
     }
-    if (filterPriority !== null) {
+    if (selectedPriority !== null) {
       const cur = dirtyPriorities[p.id] !== undefined ? dirtyPriorities[p.id] : p.priority;
-      if (cur !== filterPriority) return false;
+      if (cur !== selectedPriority) return false;
     }
     return true;
   });
@@ -193,9 +190,16 @@ function ProcessPriorityPage() {
   );
 
   const selectedLineName =
-    filterLineId !== null
-      ? lines.find((l) => l.id === filterLineId)?.name || "Chưa xác định"
+    selectedLineId !== null
+      ? lines.find((l) => l.id === selectedLineId)?.name || "Chưa xác định"
       : "Tất cả";
+  const filterLabelStyle = {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    color: "#0f172a"
+  };
 
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns = [
@@ -285,11 +289,11 @@ function ProcessPriorityPage() {
           <Card bordered={false} style={{ borderRadius: 14, boxShadow: "0 1px 6px rgba(15,23,42,0.07)", border: "1px solid #e2e8f0", background: "#fff", height: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <DeploymentUnitOutlined style={{ color: "#64748b", fontSize: 18 }} />
+                <DeploymentUnitOutlined style={{ color: primaryColor, fontSize: 18 }} />
               </div>
               <div>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block" }}>Line đang lọc</Text>
-                <Text strong style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{selectedLineName}</Text>
+                <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>Line đang lọc</Text>
+                <Text strong style={{ fontSize: 16, fontWeight: 800, color: primaryColor }}>{selectedLineName}</Text>
               </div>
             </div>
           </Card>
@@ -300,11 +304,11 @@ function ProcessPriorityPage() {
           <Card bordered={false} style={{ borderRadius: 14, boxShadow: "0 1px 6px rgba(15,23,42,0.07)", border: "1px solid #e2e8f0", background: "#fff", height: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <DeploymentUnitOutlined style={{ color: "#64748b", fontSize: 18 }} />
+                <DeploymentUnitOutlined style={{ color: primaryColor, fontSize: 18 }} />
               </div>
               <div>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block" }}>Số Line</Text>
-                <Text strong style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{lines.length}</Text>
+                <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>Số Line</Text>
+                <Text strong style={{ fontSize: 22, fontWeight: 800, color: primaryColor }}>{lines.length}</Text>
               </div>
             </div>
           </Card>
@@ -315,11 +319,11 @@ function ProcessPriorityPage() {
           <Card bordered={false} style={{ borderRadius: 14, boxShadow: "0 1px 6px rgba(15,23,42,0.07)", border: "1px solid #e2e8f0", background: "#fff", height: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <BlockOutlined style={{ color: "#64748b", fontSize: 18 }} />
+                <BlockOutlined style={{ color: primaryColor, fontSize: 18 }} />
               </div>
               <div>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block" }}>Số Quy trình</Text>
-                <Text strong style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{allProcesses.length}</Text>
+                <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>Số Quy trình</Text>
+                <Text strong style={{ fontSize: 22, fontWeight: 800, color: primaryColor }}>{allProcesses.length}</Text>
               </div>
             </div>
           </Card>
@@ -328,7 +332,7 @@ function ProcessPriorityPage() {
         {/* Card 4: Phân bổ ưu tiên */}
         <Col xs={24} sm={12} md={10}>
           <Card bordered={false} style={{ borderRadius: 14, boxShadow: "0 1px 6px rgba(15,23,42,0.07)", border: "1px solid #e2e8f0", background: "#fff", height: "100%" }}>
-            <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: 8 }}>
+            <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: 8, color: "#0f172a" }}>
               Phân bổ ưu tiên
             </Text>
             <div style={{ display: "flex", gap: 6, flexWrap: "nowrap" }}>
@@ -385,31 +389,10 @@ function ProcessPriorityPage() {
           }}
         >
           <Row gutter={[12, 12]} align="bottom">
-            {/* Filter: Line */}
-            <Col xs={24} sm={12} md={6}>
-              <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  <FilterOutlined style={{ marginRight: 4 }} />Line sản xuất
-                </Text>
-                <Select
-                  placeholder="Tất cả line"
-                  value={filterLineId}
-                  onChange={(v) => { setFilterLineId(v); setCurrentPage(1); }}
-                  loading={loadingLines}
-                  style={{ width: "100%" }}
-                  size="large"
-                  showSearch
-                  allowClear
-                  optionFilterProp="label"
-                  options={lines.map((l) => ({ value: l.id, label: l.name }))}
-                />
-              </Space>
-            </Col>
-
             {/* Filter: Name */}
             <Col xs={24} sm={12} md={7}>
               <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <Text style={filterLabelStyle}>
                   <SearchOutlined style={{ marginRight: 4 }} />Tên quy trình / ID
                 </Text>
                 <Input
@@ -423,15 +406,36 @@ function ProcessPriorityPage() {
               </Space>
             </Col>
 
+            {/* Filter: Line */}
+            <Col xs={24} sm={12} md={6}>
+              <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                <Text style={filterLabelStyle}>
+                  <FilterOutlined style={{ marginRight: 4 }} />Line sản xuất
+                </Text>
+                <Select
+                  placeholder="Tất cả line"
+                  value={selectedLineId}
+                  onChange={(v) => { setFilterLineId(v ?? null); setCurrentPage(1); }}
+                  loading={loadingLines}
+                  style={{ width: "100%" }}
+                  size="large"
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                  options={lines.map((l) => ({ value: l.id, label: l.name }))}
+                />
+              </Space>
+            </Col>
+
             {/* Filter: Priority */}
             <Col xs={24} sm={12} md={6}>
               <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                <Text type="secondary" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <Text style={filterLabelStyle}>
                   <FilterOutlined style={{ marginRight: 4 }} />Mức độ ưu tiên
                 </Text>
                 <Select
                   placeholder="Tất cả mức ưu tiên"
-                  value={filterPriority}
+                  value={selectedPriority}
                   onChange={(v) => { setFilterPriority(v ?? null); setCurrentPage(1); }}
                   style={{ width: "100%" }}
                   size="large"
@@ -443,15 +447,6 @@ function ProcessPriorityPage() {
 
             {/* Actions */}
             <Col xs={24} sm={12} md={5} style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleReload}
-                disabled={loadingProcesses}
-                size="large"
-                style={{ borderRadius: 10 }}
-              >
-                Tải lại
-              </Button>
               <Button
                 type="primary"
                 icon={<SaveOutlined />}

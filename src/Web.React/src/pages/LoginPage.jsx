@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../config/api";
 import { useAuth } from "../contexts/AuthContext";
 import { showSuccessMessage } from "../utils/appMessage";
+import { appColors } from "../theme/colors";
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -51,7 +52,7 @@ function LoginPage() {
           width: 400,
           height: 400,
           borderRadius: "50%",
-          background: "rgba(0, 82, 204, 0.05)",
+          background: appColors.primaryGlow,
           top: "-10%",
           left: "-10%",
           filter: "blur(80px)",
@@ -64,7 +65,7 @@ function LoginPage() {
           width: 500,
           height: 500,
           borderRadius: "50%",
-          background: "rgba(38, 132, 255, 0.06)",
+          background: appColors.primaryGlowStrong,
           bottom: "-15%",
           right: "-10%",
           filter: "blur(100px)",
@@ -156,9 +157,9 @@ function LoginPage() {
                 marginTop: 16, 
                 height: 46,
                 borderRadius: 10,
-                background: "linear-gradient(135deg, #0052cc, #2684ff)",
+                background: `linear-gradient(135deg, ${appColors.primary}, ${appColors.primaryGradientEnd})`,
                 border: "none",
-                boxShadow: "0 4px 12px rgba(0, 82, 204, 0.2)"
+                boxShadow: `0 4px 12px ${appColors.primaryShadow}`
               }}
             >
               Đăng nhập hệ thống

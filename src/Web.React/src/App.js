@@ -9,6 +9,7 @@ import AppMessageBridge from "./components/AppMessageBridge";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProcessPriorityPage from "./pages/ProcessPriorityPage";
+import { appColors } from "./theme/colors";
 
 const FONT_STACK = [
   "Inter",
@@ -24,8 +25,8 @@ const FONT_STACK = [
 const appTheme = {
   algorithm: theme.defaultAlgorithm,
   token: {
-    colorPrimary: "#0052cc",
-    colorInfo: "#0052cc",
+    colorPrimary: appColors.primary,
+    colorInfo: appColors.primary,
     colorSuccess: "#10b981",
     colorWarning: "#f59e0b",
     colorError: "#ef4444",
@@ -57,8 +58,8 @@ const appTheme = {
       itemBorderRadius: 10,
       itemHeight: 42,
       itemMarginBlock: 4,
-      itemSelectedBg: "#eaf2ff",
-      itemSelectedColor: "#0052cc",
+      itemSelectedBg: appColors.primarySoft,
+      itemSelectedColor: appColors.primary,
       itemColor: "#475569",
       iconSize: 18,
       subMenuItemBg: "transparent"
@@ -77,8 +78,8 @@ const appTheme = {
     Input: {
       borderRadius: 10,
       controlHeightLG: 44,
-      activeBorderColor: "#0052cc",
-      hoverBorderColor: "#80b1ff"
+      activeBorderColor: appColors.primary,
+      hoverBorderColor: appColors.primaryFocus
     },
     Select: {
       borderRadius: 10,
@@ -101,8 +102,8 @@ const appTheme = {
     },
     Tabs: {
       cardBg: "#f1f5f9",
-      itemSelectedColor: "#0052cc",
-      itemHoverColor: "#0052cc"
+      itemSelectedColor: appColors.primary,
+      itemHoverColor: appColors.primary
     },
     Typography: {
       titleMarginBottom: 0,
