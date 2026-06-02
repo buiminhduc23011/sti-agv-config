@@ -33,7 +33,7 @@
 #>
 
 param(
-    [string]$OutputDir     = 'dist',
+    [string]$OutputDir     = 'dist-sti-agv-config',
     [string]$Configuration = 'Release',
     [switch]$SelfContained,
     [string]$Runtime       = 'win-x64'

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,13 +57,20 @@ public sealed class UserManagementService : IUserManagementService
         }
 
         var total = await query.CountAsync(cancellationToken);
-        var users = await query
+        var userEntities = await query
             .OrderByDescending(x => x.IsSystemAccount)
             .ThenBy(x => x.Username)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
-            .Select(x => ToUserDto(x))
             .ToListAsync(cancellationToken);
+
+        var actorDisplayNames = await GetActorDisplayNamesByUsernameAsync(
+            userEntities.SelectMany(x => new[] { x.CreatedBy, x.UpdatedBy }),
+            cancellationToken);
+
+        var users = userEntities
+            .Select(x => ToUserDto(x, actorDisplayNames))
+            .ToList();
 
         return new UserListResponse
         {
@@ -193,8 +201,42 @@ public sealed class UserManagementService : IUserManagementService
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
-    private static UserDto ToUserDto(UserEntity user)
+    private async Task<Dictionary<string, string>> GetActorDisplayNamesByUsernameAsync(
+        IEnumerable<string?> actorNames,
+        CancellationToken cancellationToken)
     {
+        var usernames = actorNames
+            .Select(x => x?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x) && !string.Equals(x, "System", StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (usernames.Length == 0)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var users = await _dbContext.Users
+            .AsNoTracking()
+            .Where(x => usernames.Contains(x.Username))
+            .Select(x => new { x.Username, x.FullName })
+            .ToListAsync(cancellationToken);
+
+        return users.ToDictionary(x => x.Username, x => x.FullName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveActorDisplayName(string actor, IReadOnlyDictionary<string, string> actorDisplayNames)
+    {
+        var normalizedActor = actor.Trim();
+        return actorDisplayNames.TryGetValue(normalizedActor, out var fullName) && !string.IsNullOrWhiteSpace(fullName)
+            ? fullName
+            : actor;
+    }
+
+    private static UserDto ToUserDto(UserEntity user, IReadOnlyDictionary<string, string>? actorDisplayNames = null)
+    {
+        actorDisplayNames ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         return new UserDto
         {
             Id = user.Id,
@@ -206,8 +248,8 @@ public sealed class UserManagementService : IUserManagementService
             IsSystemAccount = user.IsSystemAccount,
             CreatedAtUtc = user.CreatedAtUtc,
             UpdatedAtUtc = user.UpdatedAtUtc,
-            CreatedBy = user.CreatedBy,
-            UpdatedBy = user.UpdatedBy
+            CreatedBy = ResolveActorDisplayName(user.CreatedBy, actorDisplayNames),
+            UpdatedBy = ResolveActorDisplayName(user.UpdatedBy, actorDisplayNames)
         };
     }
 }

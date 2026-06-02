@@ -123,6 +123,12 @@ public sealed class UsersController : ControllerBase
 
     private string GetActor()
     {
+        var fullName = User.FindFirstValue(ClaimTypes.GivenName);
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            return fullName.Trim();
+        }
+
         return User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "System";
     }
 

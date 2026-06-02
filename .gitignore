@@ -38,6 +38,7 @@ src/Server.Api/Storage/Uploads/
 # Node/Frontend artifacts
 node_modules/
 dist/
+dist-sti-agv-config/
 coverage/
 
 # OS junk files

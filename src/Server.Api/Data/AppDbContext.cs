@@ -13,6 +13,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<LineEntity> Lines => Set<LineEntity>();
     public DbSet<ProcessEntity> Processes => Set<ProcessEntity>();
+    public DbSet<ProcessPriorityLogEntity> ProcessPriorityLogs => Set<ProcessPriorityLogEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,8 +32,8 @@ public sealed class AppDbContext : DbContext
             entity.Property(x => x.Role).HasMaxLength(50).IsRequired();
             entity.Property(x => x.CreatedAtUtc).IsRequired();
             entity.Property(x => x.UpdatedAtUtc).IsRequired();
-            entity.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
-            entity.Property(x => x.UpdatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.CreatedBy).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.UpdatedBy).HasMaxLength(150).IsRequired();
         });
 
         modelBuilder.Entity<LineEntity>(entity =>
@@ -55,6 +56,20 @@ public sealed class AppDbContext : DbContext
             entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
             entity.Property(x => x.Line).HasColumnName("Line");
             entity.Property(x => x.Priority).HasColumnName("Priority");
+        });
+
+        modelBuilder.Entity<ProcessPriorityLogEntity>(entity =>
+        {
+            entity.ToTable("ProcessPriorityLogs");
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.ProcessId, x.UpdatedAtUtc, x.Id });
+
+            entity.Property(x => x.ProcessId).IsRequired();
+            entity.Property(x => x.LineId).IsRequired();
+            entity.Property(x => x.PreviousPriority).IsRequired();
+            entity.Property(x => x.NewPriority).IsRequired();
+            entity.Property(x => x.UpdatedAtUtc).IsRequired();
+            entity.Property(x => x.UpdatedBy).HasMaxLength(150).IsRequired();
         });
     }
 }

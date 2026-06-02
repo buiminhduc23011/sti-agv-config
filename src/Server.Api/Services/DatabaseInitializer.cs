@@ -27,8 +27,8 @@ public sealed class DatabaseInitializer
                 [IsSystemAccount] BIT NOT NULL,
                 [CreatedAtUtc] DATETIMEOFFSET NOT NULL,
                 [UpdatedAtUtc] DATETIMEOFFSET NOT NULL,
-                [CreatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System',
-                [UpdatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System',
+                [CreatedBy] NVARCHAR(150) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System',
+                [UpdatedBy] NVARCHAR(150) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System',
                 CONSTRAINT [PK_Users] PRIMARY KEY ([Id])
             );
         END;
@@ -66,13 +66,27 @@ public sealed class DatabaseInitializer
         IF COL_LENGTH(N'dbo.Users', N'CreatedBy') IS NULL
         BEGIN
             ALTER TABLE [dbo].[Users]
-                ADD [CreatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System';
+                ADD [CreatedBy] NVARCHAR(150) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System';
         END;
 
         IF COL_LENGTH(N'dbo.Users', N'UpdatedBy') IS NULL
         BEGIN
             ALTER TABLE [dbo].[Users]
-                ADD [UpdatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System';
+                ADD [UpdatedBy] NVARCHAR(150) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System';
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'CreatedBy') IS NOT NULL
+           AND COL_LENGTH(N'dbo.Users', N'CreatedBy') < 300
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ALTER COLUMN [CreatedBy] NVARCHAR(150) NOT NULL;
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'UpdatedBy') IS NOT NULL
+           AND COL_LENGTH(N'dbo.Users', N'UpdatedBy') < 300
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ALTER COLUMN [UpdatedBy] NVARCHAR(150) NOT NULL;
         END;
 
         IF NOT EXISTS (
@@ -83,6 +97,38 @@ public sealed class DatabaseInitializer
         BEGIN
             CREATE UNIQUE INDEX [IX_Users_Username]
                 ON [dbo].[Users] ([Username]);
+        END;
+
+        IF OBJECT_ID(N'[dbo].[ProcessPriorityLogs]', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[ProcessPriorityLogs]
+            (
+                [Id] BIGINT IDENTITY(1,1) NOT NULL,
+                [ProcessId] BIGINT NOT NULL,
+                [LineId] INT NOT NULL,
+                [PreviousPriority] INT NOT NULL,
+                [NewPriority] INT NOT NULL,
+                [UpdatedAtUtc] DATETIMEOFFSET NOT NULL,
+                [UpdatedBy] NVARCHAR(150) NOT NULL,
+                CONSTRAINT [PK_ProcessPriorityLogs] PRIMARY KEY ([Id])
+            );
+        END;
+
+        IF COL_LENGTH(N'dbo.ProcessPriorityLogs', N'UpdatedBy') IS NOT NULL
+           AND COL_LENGTH(N'dbo.ProcessPriorityLogs', N'UpdatedBy') < 300
+        BEGIN
+            ALTER TABLE [dbo].[ProcessPriorityLogs]
+                ALTER COLUMN [UpdatedBy] NVARCHAR(150) NOT NULL;
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_ProcessPriorityLogs_ProcessId_UpdatedAtUtc_Id'
+              AND object_id = OBJECT_ID(N'[dbo].[ProcessPriorityLogs]', N'U'))
+        BEGIN
+            CREATE INDEX [IX_ProcessPriorityLogs_ProcessId_UpdatedAtUtc_Id]
+                ON [dbo].[ProcessPriorityLogs] ([ProcessId], [UpdatedAtUtc] DESC, [Id] DESC);
         END;
         """;
 
@@ -111,7 +157,7 @@ public sealed class DatabaseInitializer
             // We do NOT use EnsureCreatedAsync because LINE and PROCESS_LIST tables ALREADY exist.
             // Using EnsureCreatedAsync would try to create them, causing errors, or it would do nothing if ANY table exists.
             // Actually, if we connect to an existing database, EF Core's EnsureCreatedAsync does NOTHING if the database already has tables.
-            // So we manually execute our schema bootstrap for Users table.
+            // So we manually execute our schema bootstrap for app-owned tables.
             if (string.Equals(_dbContext.Database.ProviderName, "Microsoft.EntityFrameworkCore.SqlServer", StringComparison.Ordinal))
             {
                 await _dbContext.Database.ExecuteSqlRawAsync(SqlServerSchemaBootstrap, cancellationToken);

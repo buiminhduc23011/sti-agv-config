@@ -237,7 +237,7 @@ if ($preExistingWebCfg.ApiBaseUrl) { $webCfgExisting.ApiBaseUrl = $preExistingWe
 if ($preExistingWebCfg.AppName)   { $webCfgExisting.AppName    = $preExistingWebCfg.AppName }
 
 # --- Defaults ----------------------------------------------------------------
-$def_port       = if ($cfg.ApiPort)     { $cfg.ApiPort }     else { '5000' }
+$def_port       = if ($cfg.ApiPort)     { $cfg.ApiPort }     else { '8090' }
 $def_dbconn     = if ($cfg.DbConn)      { $cfg.DbConn }      else { 'Server=127.0.0.1;Database=STI_TRANSPORT_34;User Id=sti;Password=66668888;TrustServerCertificate=True' }
 $def_jwtkey     = if ($cfg.JwtKey)      { $cfg.JwtKey }      else { "StiAgvConfig.SigningKey.$(Get-Random -Maximum 99999).ReplaceInProduction" }
 $def_adminuser  = if ($cfg.AdminUser)   { $cfg.AdminUser }   else { 'admin' }
@@ -434,10 +434,14 @@ if ($null -ne $svc -and $svc.Status -ne 'Running') {
 # --- Summary ------------------------------------------------------------------
 Write-Section 'Setup Complete'
 Write-Host ''
-Write-Host "  Server URL    : http://${hostIp}:$apiPort" -ForegroundColor Cyan
-Write-Host "  Web UI        : http://${hostIp}:$apiPort" -ForegroundColor Cyan
-Write-Host "  Web API base  : $webApiBaseUrl"            -ForegroundColor Gray
-Write-Host "  Config file   : $AppSettings"              -ForegroundColor Gray
+Write-Host '  ===============================================================' -ForegroundColor Green
+Write-Host '  Ứng dụng đã được cài đặt và đang chạy thành công!' -ForegroundColor Green
+Write-Host "    -> Local:   http://localhost:$apiPort" -ForegroundColor Green
+Write-Host "    -> Public: http://${hostIp}:$apiPort" -ForegroundColor Green
+Write-Host '  ===============================================================' -ForegroundColor Green
+Write-Host ''
+Write-Host "  Web API Base  : $webApiBaseUrl"            -ForegroundColor Gray
+Write-Host "  Config File   : $AppSettings"              -ForegroundColor Gray
 Write-Host ''
 Write-Host '  To manage the service:' -ForegroundColor DarkGray
 Write-Host "    Start-Service   $svcName" -ForegroundColor DarkGray

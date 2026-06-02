@@ -44,10 +44,10 @@ Chạy từ **thư mục gốc** của repository:
 .\deploy\build.ps1 -OutputDir "C:\Release\StiAgvConfig-v1.0"
 ```
 
-Sau khi build xong, thư mục `dist/` sẽ có cấu trúc:
+Sau khi build xong, thư mục `dist-sti-agv-config/` sẽ có cấu trúc:
 
 ```
-dist/
+dist-sti-agv-config/
 ├── server/                     # .NET đã publish
 │   ├── Server.Api.exe
 │   ├── appsettings.json
@@ -86,7 +86,7 @@ Wizard sẽ hỏi từng thông số:
 ── Server Settings ─────────────────────────────────────
   (Press Enter to keep current/default value)
 
-  API Server Port [5000] :
+  API Server Port [8090] :
   SQL Server Connection String [Server=127.0.0.1;Database=STI_TRANSPORT_34;User Id=sti;Password=66668888;TrustServerCertificate=True] :
   Change JWT signing key (recommended for production)? [y/N] :
 
@@ -109,7 +109,7 @@ Sau khi hoàn thành:
 - Cấu hình ghi vào `server/appsettings.Production.json`
 - Cấu hình web client ghi vào `server/wwwroot/config.json` (`API_BASE_URL`, `APP_NAME`)
 - Service `StiAgvConfig.Server` luôn được đặt chế độ **Automatic** (tự khởi động cùng hệ thống)
-- Truy cập Web UI tại `http://<server-ip>:5000`
+- Truy cập Web UI tại `http://<server-ip>:8090`
 
 ---
 
@@ -119,7 +119,7 @@ Mọi thông số lưu tại **`server/appsettings.Production.json`** (ghi đè 
 
 ```json
 {
-  "Urls": "http://*:5000",
+  "Urls": "http://*:8090",
   "ConnectionStrings": {
     "DefaultConnection": "Server=127.0.0.1;Database=STI_TRANSPORT_34;User Id=sti;Password=66668888;TrustServerCertificate=True"
   },
@@ -163,7 +163,7 @@ sc.exe delete StiAgvConfig.Server
 ## Chạy thủ công (không dùng Service)
 
 ```powershell
-cd dist\server
+cd dist-sti-agv-config\server
 $env:ASPNETCORE_ENVIRONMENT = "Production"
 .\Server.Api.exe
 ```
@@ -179,7 +179,7 @@ $env:ASPNETCORE_ENVIRONMENT = "Production"
 
 ```powershell
 Stop-Service StiAgvConfig.Server
-Copy-Item .\dist\server\* -Destination "C:\StiAgvConfig\server\" -Recurse -Force -Exclude appsettings.Production.json
+Copy-Item .\dist-sti-agv-config\server\* -Destination "C:\StiAgvConfig\server\" -Recurse -Force -Exclude appsettings.Production.json
 Start-Service StiAgvConfig.Server
 ```
 
@@ -189,5 +189,5 @@ Start-Service StiAgvConfig.Server
 
 | Cổng | Dịch vụ |
 |------|---------|
-| **5000** | STI AGV Configuration Server API + Web UI |
+| **8090** | STI AGV Configuration Server API + Web UI |
 | 1433 | SQL Server |

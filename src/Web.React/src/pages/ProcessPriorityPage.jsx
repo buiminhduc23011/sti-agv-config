@@ -66,6 +66,26 @@ function priorityTag(val) {
   );
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(date);
+}
+
 function ProcessPriorityPage() {
   const screens = useBreakpoint();
   const isMobile = !screens.lg;
@@ -259,6 +279,20 @@ function ProcessPriorityPage() {
       },
     },
     {
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAtUtc",
+      key: "updatedAtUtc",
+      width: 190,
+      render: (value) => <Text>{formatDateTime(value)}</Text>,
+    },
+    {
+      title: "Người cập nhật",
+      dataIndex: "updatedBy",
+      key: "updatedBy",
+      width: 170,
+      render: (value) => <Text type={value ? undefined : "secondary"}>{value || "-"}</Text>,
+    },
+    {
       title: "Cấu hình Độ ưu tiên",
       key: "priority",
       width: 300,
@@ -349,8 +383,8 @@ function ProcessPriorityPage() {
                   return cur === level;
                 }).length;
                 return (
-                  <div key={level} style={{ flex: 1, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 6px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 0 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
+                  <div key={level} style={{ flex: 1, position: "relative", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 6px 6px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 0 }}>
+                    <div style={{ position: "absolute", top: 8, right: 8, width: 6, height: 6, borderRadius: "50%", background: color }} />
                     <Text strong style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{count}</Text>
                     <Text style={{ fontSize: 10, color: "#94a3b8", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{label}</Text>
                   </div>
@@ -400,7 +434,6 @@ function ProcessPriorityPage() {
                   prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
                   value={filterName}
                   onChange={(e) => { setFilterName(e.target.value); setCurrentPage(1); }}
-                  size="large"
                   allowClear
                 />
               </Space>
@@ -418,7 +451,6 @@ function ProcessPriorityPage() {
                   onChange={(v) => { setFilterLineId(v ?? null); setCurrentPage(1); }}
                   loading={loadingLines}
                   style={{ width: "100%" }}
-                  size="large"
                   showSearch
                   allowClear
                   optionFilterProp="label"
@@ -438,7 +470,6 @@ function ProcessPriorityPage() {
                   value={selectedPriority}
                   onChange={(v) => { setFilterPriority(v ?? null); setCurrentPage(1); }}
                   style={{ width: "100%" }}
-                  size="large"
                   allowClear
                   options={PRIORITY_FILTER_OPTIONS}
                 />
@@ -453,7 +484,6 @@ function ProcessPriorityPage() {
                 onClick={handleSaveAll}
                 disabled={!isDirty || saving}
                 loading={saving}
-                size="large"
                 style={{ borderRadius: 10 }}
               >
                 Lưu cấu hình
@@ -471,6 +501,7 @@ function ProcessPriorityPage() {
                 columns={columns}
                 rowKey="id"
                 sticky
+                scroll={{ x: 1320 }}
                 pagination={false}
                 rowClassName={(record) =>
                   dirtyPriorities[record.id] !== undefined ? "dirty-table-row" : ""

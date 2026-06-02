@@ -309,13 +309,13 @@ function MainLayout() {
           </div>
         </Header>
 
-        <Content style={{ padding: isMobile ? 12 : 20, flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0, transition: "padding 0.2s" }}>
+        <Content style={{ padding: isMobile ? "12px 12px 0px 12px" : "20px 20px 0px 20px", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0, transition: "padding 0.2s" }}>
           <div style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
             <Outlet />
           </div>
         </Content>
 
-        <Footer style={{ textAlign: "center", color: "#94a3b8", background: "transparent", padding: "6px 24px 12px", fontSize: 12.5, flexShrink: 0 }}>
+        <Footer style={{ textAlign: "center", color: "#94a3b8", background: "transparent", padding: "4px 24px 8px", fontSize: 11.5, flexShrink: 0 }}>
           AGV Configuration | Designed by STI.AI &copy; 2026
         </Footer>
       </Layout>
