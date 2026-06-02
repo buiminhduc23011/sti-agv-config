@@ -7,6 +7,7 @@ import {
   MenuFoldOutlined,
   MenuOutlined,
   MenuUnfoldOutlined,
+  SettingOutlined,
   UserOutlined
 } from "@ant-design/icons";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -30,21 +31,52 @@ function MainLayout() {
   const config = getConfig();
 
   const menuItems = useMemo(() => {
-    return [
+    const items = [
       {
         key: "/process-priority",
         icon: <ControlOutlined />,
         label: <NavLink to="/process-priority">Cấu hình ưu tiên</NavLink>
       }
     ];
-  }, []);
+
+    if (currentUser?.role === "Admin") {
+      items.push({
+        key: "/user-settings",
+        icon: <SettingOutlined />,
+        label: <NavLink to="/user-settings">Cài đặt người dùng</NavLink>
+      });
+    }
+
+    return items;
+  }, [currentUser?.role]);
 
   const selectedKey = useMemo(() => {
     if (location.pathname.startsWith("/process-priority")) {
       return "/process-priority";
     }
+    if (location.pathname.startsWith("/user-settings")) {
+      return "/user-settings";
+    }
     return location.pathname;
   }, [location.pathname]);
+
+  const activePage = useMemo(() => {
+    const pageMap = {
+      "/process-priority": {
+        title: "Process Priority",
+        subtitle: "Cấu hình mức độ ưu tiên của quy trình theo từng Line sản xuất"
+      },
+      "/user-settings": {
+        title: "Cài đặt người dùng",
+        subtitle: "Quản lý danh sách tài khoản, quyền truy cập và lịch sử cập nhật"
+      }
+    };
+
+    return pageMap[selectedKey] || {
+      title: config.APP_NAME,
+      subtitle: "STI AGV System Configuration"
+    };
+  }, [config.APP_NAME, selectedKey]);
 
   useEffect(() => {
     if (isMobile) {
@@ -98,10 +130,11 @@ function MainLayout() {
 
       <div style={{ flex: 1, padding: "16px 12px" }}>
         <Menu
+          className="app-sidebar-menu"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
-          style={{ borderInlineEnd: 0 }}
+          style={{ borderInlineEnd: 0, background: "transparent" }}
         />
       </div>
 
@@ -261,11 +294,11 @@ function MainLayout() {
 
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
               <Text strong style={{ fontSize: 15, color: "#0f172a", fontWeight: 700 }}>
-                Process Priority
+                {activePage.title}
               </Text>
               {!isMobile && (
                 <Text type="secondary" style={{ fontSize: 11.5, color: "#64748b", marginTop: 1 }}>
-                  Cấu hình mức độ ưu tiên của quy trình theo từng Line sản xuất
+                  {activePage.subtitle}
                 </Text>
               )}
             </div>

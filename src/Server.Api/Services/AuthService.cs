@@ -53,6 +53,7 @@ public sealed class AuthService : IAuthService
         {
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
             user.UpdatedAtUtc = DateTimeOffset.UtcNow;
+            user.UpdatedBy = "System";
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 

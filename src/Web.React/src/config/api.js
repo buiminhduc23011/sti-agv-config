@@ -84,6 +84,9 @@ export function getApiErrorMessage(error, fallbackMessage) {
 export const API_ENDPOINTS = {
   authLogin: "/api/auth/login",
   authMe: "/api/auth/me",
+  users: "/api/users",
+  userAvailability: "/api/users/availability",
+  userById: (id) => `/api/users/${id}`,
   lines: "/api/lines",
   processes: "/api/processes",
   updatePriority: (id) => `/api/processes/${id}/priority`

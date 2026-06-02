@@ -9,6 +9,7 @@ import AppMessageBridge from "./components/AppMessageBridge";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProcessPriorityPage from "./pages/ProcessPriorityPage";
+import UserSettingsPage from "./pages/UserSettingsPage";
 import { appColors } from "./theme/colors";
 
 const FONT_STACK = [
@@ -128,6 +129,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProcessPriorityPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="user-settings"
+                  element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <UserSettingsPage />
                     </ProtectedRoute>
                   }
                 />

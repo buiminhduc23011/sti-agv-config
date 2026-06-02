@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Server.Api.Data.Entities;
 using Server.Api.Services;
 using Shared.Models.Dtos;
 
@@ -37,13 +38,7 @@ public sealed class AuthController : ControllerBase
         {
             Token = session.AccessToken,
             ExpiresAt = session.ExpiresAtUtc,
-            User = new UserDto
-            {
-                Id = session.User.Id,
-                Username = session.User.Username,
-                FullName = session.User.FullName,
-                Role = session.User.Role
-            }
+            User = ToUserDto(session.User)
         });
     }
 
@@ -57,12 +52,24 @@ public sealed class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(new UserDto
+        return Ok(ToUserDto(user));
+    }
+
+    private static UserDto ToUserDto(UserEntity user)
+    {
+        return new UserDto
         {
             Id = user.Id,
             Username = user.Username,
             FullName = user.FullName,
-            Role = user.Role
-        });
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            IsSystemAccount = user.IsSystemAccount,
+            CreatedAtUtc = user.CreatedAtUtc,
+            UpdatedAtUtc = user.UpdatedAtUtc,
+            CreatedBy = user.CreatedBy,
+            UpdatedBy = user.UpdatedBy
+        };
     }
 }

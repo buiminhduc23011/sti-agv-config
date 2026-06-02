@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient, API_ENDPOINTS, setAuthToken } from "../config/api";
 import { showInfoMessage } from "../utils/appMessage";
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     bootstrap();
   }, []);
 
-  const login = async (username, password) => {
+  const login = useCallback(async (username, password) => {
     const response = await apiClient.post(API_ENDPOINTS.authLogin, {
       username,
       password
@@ -56,15 +56,15 @@ export function AuthProvider({ children }) {
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
     localStorage.setItem(STORAGE_EXPIRES_KEY, expiresAt);
     return user;
-  };
+  }, []);
 
-  const logout = (notify = false) => {
+  const logout = useCallback((notify = false) => {
     setCurrentUser(null);
     clearAuthState();
     if (notify) {
       showInfoMessage("Bạn đã đăng xuất.");
     }
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
       login,
       logout
     }),
-    [currentUser, loading]
+    [currentUser, loading, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

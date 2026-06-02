@@ -59,6 +59,44 @@ body {
   transition: all 0.15s ease-in-out !important;
 }
 
+.app-sidebar-menu.ant-menu {
+  background: transparent !important;
+}
+
+.app-sidebar-menu .ant-menu-item {
+  width: 100%;
+  margin-inline: 0;
+  color: #334155 !important;
+  font-weight: 600;
+}
+
+.app-sidebar-menu .ant-menu-item .anticon {
+  color: #475569;
+}
+
+.app-sidebar-menu .ant-menu-item .ant-menu-title-content a {
+  color: inherit;
+}
+
+.app-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected):hover {
+  background: #f8fafc !important;
+  color: var(--app-primary) !important;
+}
+
+.app-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected):hover .anticon {
+  color: var(--app-primary);
+}
+
+.app-sidebar-menu .ant-menu-item-selected {
+  background: #eef4ff !important;
+  color: var(--app-primary) !important;
+  font-weight: 700;
+}
+
+.app-sidebar-menu .ant-menu-item-selected .anticon {
+  color: var(--app-primary);
+}
+
 /* Unsaved row highlights */
 .dirty-table-row {
   background-color: #fffbeb !important;

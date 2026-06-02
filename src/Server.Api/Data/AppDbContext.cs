@@ -27,9 +27,12 @@ public sealed class AppDbContext : DbContext
             entity.Property(x => x.Username).HasMaxLength(100).IsRequired();
             entity.Property(x => x.PasswordHash).HasMaxLength(1024).IsRequired();
             entity.Property(x => x.FullName).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(255);
             entity.Property(x => x.Role).HasMaxLength(50).IsRequired();
             entity.Property(x => x.CreatedAtUtc).IsRequired();
             entity.Property(x => x.UpdatedAtUtc).IsRequired();
+            entity.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.UpdatedBy).HasMaxLength(100).IsRequired();
         });
 
         modelBuilder.Entity<LineEntity>(entity =>

@@ -27,8 +27,52 @@ public sealed class DatabaseInitializer
                 [IsSystemAccount] BIT NOT NULL,
                 [CreatedAtUtc] DATETIMEOFFSET NOT NULL,
                 [UpdatedAtUtc] DATETIMEOFFSET NOT NULL,
+                [CreatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System',
+                [UpdatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System',
                 CONSTRAINT [PK_Users] PRIMARY KEY ([Id])
             );
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'Email') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [Email] NVARCHAR(255) NULL;
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'IsActive') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [IsActive] BIT NOT NULL CONSTRAINT [DF_Users_IsActive] DEFAULT 1;
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'IsSystemAccount') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [IsSystemAccount] BIT NOT NULL CONSTRAINT [DF_Users_IsSystemAccount] DEFAULT 0;
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'CreatedAtUtc') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [CreatedAtUtc] DATETIMEOFFSET NOT NULL CONSTRAINT [DF_Users_CreatedAtUtc] DEFAULT SYSDATETIMEOFFSET();
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'UpdatedAtUtc') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [UpdatedAtUtc] DATETIMEOFFSET NOT NULL CONSTRAINT [DF_Users_UpdatedAtUtc] DEFAULT SYSDATETIMEOFFSET();
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'CreatedBy') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [CreatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_CreatedBy] DEFAULT N'System';
+        END;
+
+        IF COL_LENGTH(N'dbo.Users', N'UpdatedBy') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users]
+                ADD [UpdatedBy] NVARCHAR(100) NOT NULL CONSTRAINT [DF_Users_UpdatedBy] DEFAULT N'System';
         END;
 
         IF NOT EXISTS (
@@ -75,6 +119,7 @@ public sealed class DatabaseInitializer
         }
 
         await SeedUsersAsync(cancellationToken);
+        await ProtectSeedUsersAsync(cancellationToken);
     }
 
     private async Task SeedUsersAsync(CancellationToken cancellationToken)
@@ -94,7 +139,9 @@ public sealed class DatabaseInitializer
             IsActive = true,
             IsSystemAccount = true,
             CreatedAtUtc = now,
-            UpdatedAtUtc = now
+            UpdatedAtUtc = now,
+            CreatedBy = "System",
+            UpdatedBy = "System"
         };
         admin.PasswordHash = _passwordHasher.HashPassword(admin, _seedOptions.AdminPassword);
 
@@ -106,11 +153,53 @@ public sealed class DatabaseInitializer
             IsActive = true,
             IsSystemAccount = true,
             CreatedAtUtc = now,
-            UpdatedAtUtc = now
+            UpdatedAtUtc = now,
+            CreatedBy = "System",
+            UpdatedBy = "System"
         };
         technician.PasswordHash = _passwordHasher.HashPassword(technician, _seedOptions.TechnicianPassword);
 
         _dbContext.Users.AddRange(admin, technician);
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task ProtectSeedUsersAsync(CancellationToken cancellationToken)
+    {
+        var seedUsernames = new[]
+        {
+            _seedOptions.AdminUsername.Trim(),
+            _seedOptions.TechnicianUsername.Trim()
+        };
+
+        var seedUsers = await _dbContext.Users
+            .Where(x => seedUsernames.Contains(x.Username))
+            .ToListAsync(cancellationToken);
+
+        var changed = false;
+        foreach (var user in seedUsers)
+        {
+            if (!user.IsSystemAccount)
+            {
+                user.IsSystemAccount = true;
+                changed = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.CreatedBy))
+            {
+                user.CreatedBy = "System";
+                changed = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.UpdatedBy))
+            {
+                user.UpdatedBy = "System";
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
