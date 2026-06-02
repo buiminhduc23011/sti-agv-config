@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Server.Api/Server.Api.csproj" />
+    <Project Path="src/Shared.Models/Shared.Models.csproj" />
+  </Folder>
+</Solution>

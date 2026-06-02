@@ -1,0 +1,50 @@
+# Temporary folders
+.tmp/
+.tmp.Path/
+
+# IDE/editor files
+.vs/
+.vscode/
+.claude/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+
+# Logs and diagnostics
+*.log
+msbuild.log
+build_err.txt
+build_errors.txt
+build_output.txt
+
+# Local environment files
+.env
+.env.*
+
+# Local .NET CLI cache and telemetry
+.dotnet/
+.dotnet_cli/
+
+# Local storage/runtime data
+src/Server.Api/Storage/Uploads/
+
+# Node/Frontend artifacts
+node_modules/
+dist/
+coverage/
+
+# OS junk files
+Thumbs.db
+.DS_Store
+
+# Backup/temp files
+*.tmp
+*.bak
+*~
