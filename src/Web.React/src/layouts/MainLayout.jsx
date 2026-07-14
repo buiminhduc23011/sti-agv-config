@@ -7,6 +7,7 @@ import {
   MenuFoldOutlined,
   MenuOutlined,
   MenuUnfoldOutlined,
+  PlayCircleOutlined,
   SettingOutlined,
   UserOutlined
 } from "@ant-design/icons";
@@ -33,6 +34,11 @@ function MainLayout() {
   const menuItems = useMemo(() => {
     const items = [
       {
+        key: "/transport-orders",
+        icon: <PlayCircleOutlined />,
+        label: <NavLink to="/transport-orders">Tạo lệnh</NavLink>
+      },
+      {
         key: "/process-priority",
         icon: <ControlOutlined />,
         label: <NavLink to="/process-priority">Cấu hình ưu tiên</NavLink>
@@ -51,6 +57,9 @@ function MainLayout() {
   }, [currentUser?.role]);
 
   const selectedKey = useMemo(() => {
+    if (location.pathname.startsWith("/transport-orders")) {
+      return "/transport-orders";
+    }
     if (location.pathname.startsWith("/process-priority")) {
       return "/process-priority";
     }
@@ -62,6 +71,10 @@ function MainLayout() {
 
   const activePage = useMemo(() => {
     const pageMap = {
+      "/transport-orders": {
+        title: "Tạo lệnh",
+        subtitle: "Chọn line, chọn quy trình và theo dõi danh sách lệnh đang chờ hoặc đang chạy"
+      },
       "/process-priority": {
         title: "Process Priority",
         subtitle: "Cấu hình mức độ ưu tiên của quy trình theo từng Line sản xuất"

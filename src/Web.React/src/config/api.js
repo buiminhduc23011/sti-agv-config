@@ -89,7 +89,8 @@ export const API_ENDPOINTS = {
   userById: (id) => `/api/users/${id}`,
   lines: "/api/lines",
   processes: "/api/processes",
-  updatePriority: (id) => `/api/processes/${id}/priority`
+  updatePriority: (id) => `/api/processes/${id}/priority`,
+  transportOrders: "/api/transportorders"
 };
 
 function applyResolvedConfig(config) {

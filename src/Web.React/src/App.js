@@ -9,6 +9,7 @@ import AppMessageBridge from "./components/AppMessageBridge";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProcessPriorityPage from "./pages/ProcessPriorityPage";
+import TransportOrdersPage from "./pages/TransportOrdersPage";
 import UserSettingsPage from "./pages/UserSettingsPage";
 import { appColors } from "./theme/colors";
 
@@ -124,6 +125,14 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<Navigate to="/process-priority" replace />} />
+                <Route
+                  path="transport-orders"
+                  element={
+                    <ProtectedRoute>
+                      <TransportOrdersPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="process-priority"
                   element={
