@@ -105,6 +105,8 @@ public sealed class TransportOrdersController : ControllerBase
             return BadRequest("ProcessId vượt quá phạm vi cho phép của hệ thống.");
         }
 
+        var selectedProcessId = (int)request.ProcessId;
+
         var processDetails = await (
             from process in _dbContext.Processes.AsNoTracking()
             join line in _dbContext.Lines.AsNoTracking()
@@ -122,9 +124,23 @@ public sealed class TransportOrdersController : ControllerBase
             return NotFound($"Không tìm thấy quy trình có ID {request.ProcessId}.");
         }
 
+        var hasActiveOrder = await _dbContext.TransOrders
+            .AsNoTracking()
+            .AnyAsync(
+                x => !x.IsDelete
+                    && x.Type == ProcessTransportType
+                    && x.LineId == selectedProcessId
+                    && (x.StatusId == PendingStatusId || x.StatusId == RunningStatusId),
+                cancellationToken);
+
+        if (hasActiveOrder)
+        {
+            return Conflict("Lệnh đã được tạo, vui lòng chờ.");
+        }
+
         var totalSteps = await _dbContext.ProcessProcedures
             .AsNoTracking()
-            .Where(x => x.ProcessId == (int)request.ProcessId)
+            .Where(x => x.ProcessId == selectedProcessId)
             .CountAsync(cancellationToken);
 
         if (totalSteps == 0)
@@ -137,7 +153,7 @@ public sealed class TransportOrdersController : ControllerBase
         var order = new TransEntity
         {
             Agv = 0,
-            LineId = (int)request.ProcessId,
+            LineId = selectedProcessId,
             ReturnPoint = 0,
             FromPoint = 0,
             StatusId = PendingStatusId,
