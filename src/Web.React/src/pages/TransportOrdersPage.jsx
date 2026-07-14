@@ -16,8 +16,7 @@ import {
   ClockCircleOutlined,
   DeploymentUnitOutlined,
   PlayCircleOutlined,
-  PlusOutlined,
-  ReloadOutlined
+  PlusOutlined
 } from "@ant-design/icons";
 import { apiClient, API_ENDPOINTS, getApiErrorMessage } from "../config/api";
 import { showErrorMessage, showSuccessMessage } from "../utils/appMessage";
@@ -55,26 +54,11 @@ function formatOrderProgress(record) {
   }
 
   if (record.statusId === 0) {
-    return "Cho cap AGV";
+    return "Chờ cấp AGV";
   }
 
   const currentStep = Math.min(record.currentStep + 1, record.totalSteps);
-  return `Buoc ${currentStep}/${record.totalSteps}`;
-}
-
-function buildQueueQuery(lineId, processId) {
-  const params = new URLSearchParams();
-
-  if (lineId !== null && lineId !== undefined) {
-    params.set("lineId", lineId);
-  }
-
-  if (processId !== null && processId !== undefined) {
-    params.set("processId", processId);
-  }
-
-  const query = params.toString();
-  return query ? `?${query}` : "";
+  return `Bước ${currentStep}/${record.totalSteps}`;
 }
 
 function normalizePriority(value) {
@@ -94,7 +78,7 @@ function renderStatusTag(statusId) {
           padding: "4px 12px"
         }}
       >
-        Dang chay
+        Đang chạy
       </Tag>
     );
   }
@@ -110,7 +94,7 @@ function renderStatusTag(statusId) {
         padding: "4px 12px"
       }}
     >
-      Dang cho
+      Đang chờ
     </Tag>
   );
 }
@@ -161,6 +145,10 @@ function TransportOrdersPage() {
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [selectedLineId, setSelectedLineId] = useState(null);
   const [selectedProcessId, setSelectedProcessId] = useState(null);
+  const [tablePagination, setTablePagination] = useState({
+    current: 1,
+    pageSize: 10
+  });
 
   const fetchLines = useCallback(async () => {
     setLoadingLines(true);
@@ -169,7 +157,7 @@ function TransportOrdersPage() {
       const response = await apiClient.get(API_ENDPOINTS.lines);
       setLines(response.data);
     } catch (error) {
-      showErrorMessage(getApiErrorMessage(error, "Khong the tai danh sach line."));
+      showErrorMessage(getApiErrorMessage(error, "Không thể tải danh sách line."));
     } finally {
       setLoadingLines(false);
     }
@@ -188,17 +176,17 @@ function TransportOrdersPage() {
       setProcesses(response.data);
     } catch (error) {
       setProcesses([]);
-      showErrorMessage(getApiErrorMessage(error, "Khong the tai danh sach quy trinh."));
+      showErrorMessage(getApiErrorMessage(error, "Không thể tải danh sách quy trình."));
     } finally {
       setLoadingProcesses(false);
     }
   }, []);
 
-  const fetchOrders = useCallback(async (lineId, processId) => {
+  const fetchOrders = useCallback(async () => {
     setLoadingOrders(true);
 
     try {
-      const response = await apiClient.get(`${API_ENDPOINTS.transportOrders}${buildQueueQuery(lineId, processId)}`);
+      const response = await apiClient.get(API_ENDPOINTS.transportOrders);
       setQueue({
         pendingOrders: response.data.pendingOrders || [],
         runningOrders: response.data.runningOrders || []
@@ -208,7 +196,7 @@ function TransportOrdersPage() {
         pendingOrders: [],
         runningOrders: []
       });
-      showErrorMessage(getApiErrorMessage(error, "Khong the tai danh sach lenh."));
+      showErrorMessage(getApiErrorMessage(error, "Không thể tải danh sách lệnh."));
     } finally {
       setLoadingOrders(false);
     }
@@ -217,6 +205,20 @@ function TransportOrdersPage() {
   useEffect(() => {
     fetchLines();
   }, [fetchLines]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      fetchOrders();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [fetchOrders]);
 
   useEffect(() => {
     if (selectedLineId === null) {
@@ -228,13 +230,9 @@ function TransportOrdersPage() {
     fetchProcesses(selectedLineId);
   }, [fetchProcesses, selectedLineId]);
 
-  useEffect(() => {
-    fetchOrders(selectedLineId, selectedProcessId);
-  }, [fetchOrders, selectedLineId, selectedProcessId]);
-
   const handleCreateOrder = async () => {
     if (!selectedProcessId) {
-      showErrorMessage("Vui long chon quy trinh truoc khi tao lenh.");
+      showErrorMessage("Vui lòng chọn quy trình trước khi tạo lệnh.");
       return;
     }
 
@@ -244,10 +242,10 @@ function TransportOrdersPage() {
       await apiClient.post(API_ENDPOINTS.transportOrders, {
         processId: selectedProcessId
       });
-      showSuccessMessage("Tao lenh thanh cong.");
-      await fetchOrders(selectedLineId, selectedProcessId);
+      showSuccessMessage("Tạo lệnh thành công.");
+      await fetchOrders();
     } catch (error) {
-      showErrorMessage(getApiErrorMessage(error, "Khong the tao lenh moi."));
+      showErrorMessage(getApiErrorMessage(error, "Không thể tạo lệnh mới."));
     } finally {
       setCreatingOrder(false);
     }
@@ -255,13 +253,13 @@ function TransportOrdersPage() {
 
   const selectedLineName =
     selectedLineId !== null
-      ? lines.find((line) => line.id === selectedLineId)?.name || "Chua xac dinh"
-      : "Tat ca line";
+      ? lines.find((line) => line.id === selectedLineId)?.name || "Chưa xác định"
+      : "Chưa chọn";
 
   const selectedProcessName =
     selectedProcessId !== null
-      ? processes.find((process) => process.id === selectedProcessId)?.name || "Chua xac dinh"
-      : "Tat ca quy trinh";
+      ? processes.find((process) => process.id === selectedProcessId)?.name || "Chưa xác định"
+      : "Chưa chọn";
 
   const mergedOrders = useMemo(() => {
     return [...queue.runningOrders, ...queue.pendingOrders].sort((left, right) => {
@@ -276,6 +274,20 @@ function TransportOrdersPage() {
     });
   }, [queue.pendingOrders, queue.runningOrders]);
 
+  const currentPage = tablePagination.current;
+  const pageSize = tablePagination.pageSize;
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(mergedOrders.length / pageSize));
+
+    if (currentPage > totalPages) {
+      setTablePagination((currentValue) => ({
+        ...currentValue,
+        current: totalPages
+      }));
+    }
+  }, [currentPage, mergedOrders.length, pageSize]);
+
   const filterLabelStyle = {
     fontSize: 11,
     fontWeight: 700,
@@ -286,7 +298,7 @@ function TransportOrdersPage() {
 
   const columns = [
     {
-      title: "Lenh",
+      title: "Lệnh",
       dataIndex: "id",
       key: "id",
       width: 90,
@@ -306,7 +318,7 @@ function TransportOrdersPage() {
       )
     },
     {
-      title: "Quy trinh",
+      title: "Quy trình",
       dataIndex: "processName",
       key: "processName",
       render: (value) => <Text strong style={{ color: "#172554" }}>{value}</Text>
@@ -332,21 +344,21 @@ function TransportOrdersPage() {
       )
     },
     {
-      title: "Uu tien",
+      title: "Ưu tiên",
       dataIndex: "priority",
       key: "priority",
       width: 110,
       render: (value) => renderPriorityValue(value)
     },
     {
-      title: "Trang thai",
+      title: "Trạng thái",
       dataIndex: "statusId",
       key: "statusId",
       width: 140,
       render: (value) => renderStatusTag(value)
     },
     {
-      title: "Tien do",
+      title: "Tiến độ",
       key: "progress",
       width: 170,
       render: (_, record) => (
@@ -362,7 +374,7 @@ function TransportOrdersPage() {
       render: (_, record) => <Text type={record.agvName ? undefined : "secondary"}>{record.agvName || "-"}</Text>
     },
     {
-      title: "Tao luc",
+      title: "Tạo lúc",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 190,
@@ -381,7 +393,7 @@ function TransportOrdersPage() {
               </div>
               <div>
                 <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>
-                  Line dang chon
+                  Line đang chọn
                 </Text>
                 <Text strong style={{ fontSize: 16, fontWeight: 800, color: token.colorPrimary }}>
                   {selectedLineName}
@@ -399,7 +411,7 @@ function TransportOrdersPage() {
               </div>
               <div>
                 <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>
-                  Quy trinh dang chon
+                  Quy trình đang chọn
                 </Text>
                 <Text strong style={{ fontSize: 16, fontWeight: 800, color: "#b45309" }}>
                   {selectedProcessName}
@@ -417,7 +429,7 @@ function TransportOrdersPage() {
               </div>
               <div>
                 <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>
-                  Lenh dang cho
+                  Lệnh đang chờ
                 </Text>
                 <Text strong style={{ fontSize: 22, fontWeight: 800, color: "#d97706" }}>
                   {queue.pendingOrders.length}
@@ -435,7 +447,7 @@ function TransportOrdersPage() {
               </div>
               <div>
                 <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", display: "block", color: "#0f172a" }}>
-                  Lenh dang chay
+                  Lệnh đang chạy
                 </Text>
                 <Text strong style={{ fontSize: 22, fontWeight: 800, color: "#2563eb" }}>
                   {queue.runningOrders.length}
@@ -472,13 +484,13 @@ function TransportOrdersPage() {
           <Row gutter={[12, 12]} align="bottom">
             <Col xs={24} md={8}>
               <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                <Text style={filterLabelStyle}>Chon line</Text>
+                <Text style={filterLabelStyle}>Chọn line</Text>
                 <Select
                   allowClear
                   showSearch
                   style={{ width: "100%" }}
                   value={selectedLineId}
-                  placeholder="Chon line san xuat"
+                  placeholder="Chọn line sản xuất"
                   loading={loadingLines}
                   optionFilterProp="label"
                   options={lines.map((line) => ({ value: line.id, label: line.name }))}
@@ -492,13 +504,13 @@ function TransportOrdersPage() {
 
             <Col xs={24} md={10}>
               <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                <Text style={filterLabelStyle}>Chon quy trinh</Text>
+                <Text style={filterLabelStyle}>Chọn quy trình</Text>
                 <Select
                   allowClear
                   showSearch
                   style={{ width: "100%" }}
                   value={selectedProcessId}
-                  placeholder={selectedLineId ? "Chon quy trinh" : "Chon line truoc"}
+                  placeholder={selectedLineId ? "Chọn quy trình" : "Chọn line trước"}
                   loading={loadingProcesses}
                   disabled={selectedLineId === null}
                   optionFilterProp="label"
@@ -512,26 +524,15 @@ function TransportOrdersPage() {
             </Col>
 
             <Col xs={24} md={6} style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <Button icon={<ReloadOutlined />} onClick={() => fetchOrders(selectedLineId, selectedProcessId)} loading={loadingOrders} style={{ borderRadius: 10 }}>
-                Tai lai
-              </Button>
               <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateOrder} loading={creatingOrder} disabled={selectedProcessId === null} style={{ borderRadius: 10 }}>
-                Tao lenh
+                Tạo lệnh
               </Button>
             </Col>
           </Row>
         </div>
 
         <div style={{ padding: "14px 24px 0", flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Text strong style={{ fontSize: 16, color: "#0f172a" }}>Danh sach lenh</Text>
-          <Space size={8}>
-            <Tag bordered={false} style={{ color: "#1d4ed8", background: "#dbeafe", fontWeight: 700, borderRadius: 999, padding: "4px 12px" }}>
-              {queue.runningOrders.length} dang chay
-            </Tag>
-            <Tag bordered={false} style={{ color: "#b45309", background: "#fef3c7", fontWeight: 700, borderRadius: 999, padding: "4px 12px" }}>
-              {queue.pendingOrders.length} dang cho
-            </Tag>
-          </Space>
+          <Text strong style={{ fontSize: 16, color: "#0f172a" }}>Danh sách lệnh đang chờ và đang chạy</Text>
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column", padding: "8px 24px 24px" }}>
@@ -541,14 +542,34 @@ function TransportOrdersPage() {
               columns={columns}
               dataSource={mergedOrders}
               loading={loadingOrders}
-              pagination={{ pageSize: 8, hideOnSinglePage: true }}
+              pagination={{
+                current: tablePagination.current,
+                pageSize: tablePagination.pageSize,
+                total: mergedOrders.length,
+                showSizeChanger: true,
+                showQuickJumper: mergedOrders.length > tablePagination.pageSize,
+                pageSizeOptions: ["10", "20", "50"],
+                showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} lệnh`,
+                onChange: (page, pageSize) => {
+                  setTablePagination({
+                    current: page,
+                    pageSize
+                  });
+                },
+                onShowSizeChange: (_, pageSize) => {
+                  setTablePagination({
+                    current: 1,
+                    pageSize
+                  });
+                }
+              }}
               scroll={{ x: 1180 }}
               rowClassName={(record) => (record.statusId === 1 ? "running-order-row" : "")}
               locale={{
                 emptyText: (
                   <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="Khong co lenh nao"
+                    description="Không có lệnh đang chờ hoặc đang chạy"
                   />
                 )
               }}
