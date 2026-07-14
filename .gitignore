@@ -34,6 +34,7 @@ build_output.txt
 
 # Local storage/runtime data
 src/Server.Api/Storage/Uploads/
+.omx/
 
 # Node/Frontend artifacts
 node_modules/
